@@ -1,84 +1,54 @@
 🎬 Movie Explorer UI
 
-A Streamlit-based interactive movie browser built from a curated IMDb dataset.
+A Streamlit-based interactive movie browser built for your personal movie collection.
 Browse, filter, sort, and randomly discover films in a clean, responsive interface.
-
-🔗 Live App: Coming Soon.
 
 🚀 Features
 
   🎥 Poster-based movie grid
-  
-  🔎 Search by title
-  
-  🎭 Filter by genre
-  
-  🎬 Filter by actor
-  
-  📅 Filter by year range
-  
-  ⭐ Sort by IMDb rating
-  
+  🔎 Search, Filtering, and Sorting
   🎲 Random movie selection mode
-
   🔗 Clickable cards linking directly to IMDb
-
-🛠 Tech Stack
-
-Python
-
-Streamlit
-
-Pandas
-
-IMDb data via pre-built dataset (generated separately)
 
 📂 Project Structure
 movie-app-ui/
 │
-├── app.py
-├── movies.csv
-├── requirements.txt
+├── movie_app.py           - Streamlit UI
+├── database_setup.ipynb   - use OMDB API to turn a list to a database
+├── Example_movies.txt     - make youre own
+├── movie_database.csv     - updates from database_setup
+├── requirements.txt 
 ├── README.md
 └── .gitignore
 
 ⚙️ Running Locally
 
-Clone the repository:
+Your TODO:
+- Clone
+- Install dependencies:
+    pip install -r requirements.txt
+- Make your database
+    create your own .txt with titles/IMDB ID's
+    make an OMDB API - https://www.omdbapi.com/apikey.aspx
+    update API variable and 'run all' through database_setup.ipynb
+    correct titles in .txt that raise errors
+- Run your UI locally
+    in terminal:
+      streamlit run app.py
 
-git clone https://github.com/YOUR_USERNAME/movie-app-ui.git
-cd movie-app-ui
+- Open in your browser:
+    http://localhost:8501
 
+🌎 Accessing remotely (or on mobile):
 
-Install dependencies:
+I host a local 'zrok' to provide online access (I'm using 1.0, feel free to try 2.0):
+  Download/Install Zrok:
+    https://www.youtube.com/watch?v=Je5j4ThouCo
+  Make an account:
+    https://netfoundry.io/docs/zrok/1.0/getting-started 
+  Run in terminal (command prompt):
+    zrok enable 'key_here'
+    zrok share public 8051
+  Send yourself the zrok link!
+    
 
-pip install -r requirements.txt
-
-
-Run the app:
-
-streamlit run app.py
-
-
-Open in your browser:
-
-http://localhost:8501
-
-🌐 Deployment
-
-This app is deployed using Streamlit Community Cloud.
-
-To deploy your own version:
-
-Fork this repository
-
-Connect it to Streamlit Cloud
-
-Select app.py as the entry point
-
-Deploy
-
-🔐 Data Source
-
-This UI consumes a pre-built movie dataset (movies.csv).
-The data generation pipeline (OMDb API ingestion & cleaning) is maintained separately.
