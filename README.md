@@ -51,13 +51,21 @@ Your TODO:
 🌎 Accessing remotely (or on mobile):
 
 I host a local 'zrok' to provide online access (I'm using 1.0, feel free to try 2.0):
+
   Download/Install Zrok:
+  
     https://www.youtube.com/watch?v=Je5j4ThouCo
+
   Make an account:
+  
     https://netfoundry.io/docs/zrok/1.0/getting-started 
+    
   Run in terminal (command prompt):
+  
     zrok enable 'key_here'
+    
     zrok share public 8051
+    
   Send yourself the zrok link!
     
 
