@@ -3,6 +3,8 @@
 A Streamlit-based interactive movie browser built for your personal movie collection.
 Browse, filter, sort, and randomly discover films in a clean, responsive interface.
 
+  <img width="1785" height="866" alt="image" src="https://github.com/user-attachments/assets/9eb3ffe9-0fcf-4384-9255-8cce0d9ddd8c" />
+
 🚀 Features
 
   🎥 Poster-based movie grid
@@ -72,9 +74,4 @@ I host a local 'zrok' to provide online access (I'm using 1.0, feel free to try 
     zrok share public 8051
     
   Send yourself the zrok link!
-
-📸 UI Screenshot:
-
-  <img width="1785" height="866" alt="image" src="https://github.com/user-attachments/assets/9eb3ffe9-0fcf-4384-9255-8cce0d9ddd8c" />
-
 
