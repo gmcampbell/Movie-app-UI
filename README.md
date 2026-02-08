@@ -73,7 +73,8 @@ I host a local 'zrok' to provide online access (I'm using 1.0, feel free to try 
     
   Send yourself the zrok link!
 
-Screenshot:
+📸 UI Screenshot:
+
   <img width="1785" height="866" alt="image" src="https://github.com/user-attachments/assets/9eb3ffe9-0fcf-4384-9255-8cce0d9ddd8c" />
 
 
