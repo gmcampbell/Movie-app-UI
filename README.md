@@ -18,6 +18,7 @@ Browse, filter, sort, and randomly discover films in a clean, responsive interfa
 📂 Project Structure
 movie-app-ui/
 │
+
 ├── movie_app.py           - Streamlit UI
 
 ├── database_setup.ipynb   - use OMDB API to turn a list to a database
