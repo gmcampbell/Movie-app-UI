@@ -2,16 +2,25 @@ import streamlit as st
 import pandas as pd
 import math
 
+# Author Greg Campbell - see MIT License in repository
+# Written with assistance from ChatGPT (GPT-5.2)
 # -----------------------------
-# History & TODO
+# History
 # -----------------------------
-# 2026-01-31: Initial version
+# 2026-01-31: Initial version (actor, genre, year filters; sort; poster grid)
 # 2026-02-01: Added random mode, mouse-over effects, IMDB links, rating filter
+# 2026-02-02: Updated home database, fixed mobile layout
+# 2026-02-03: Added runtime filter
+# 2026-02-04: Added franchise detection and filters (HP, SW, Bond), can sort after random
 
-# TODO - remove blue underlines from links in custom CSS
-# TODO - allow sort to change ascending/descending, sort after random mode
-# TODO - make accessible from remote URL (Streamlit Cloud or similar)
-
+# -----------------------------
+# USAGE:
+# -----------------------------
+## In terminal:
+## Installs if needed:
+### pip install streamlit pandas 
+## Run app:
+### streamlit run movie_app.py
 
 # -----------------------------
 # CONFIG
@@ -54,7 +63,9 @@ st.markdown("""
 /* Poster image */
 .movie-card img {
     width: 100%;       /* fills card width */
-    height: 300px;     /* fixed height */
+    /* height: 300px;     /* fixed height */ */
+    height: auto;
+    aspect-ratio: 2/3; /* maintain 2:3 ratio */
     object-fit: cover; /* crop if needed */
     border-radius: 4px;
     display: block;
@@ -79,6 +90,7 @@ st.markdown("""
     color: #bbb;
     text-decoration: none;   /* explicitly remove underline */
 }
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -105,10 +117,40 @@ actor_cols = [col for col in df.columns if col.startswith("Actor")]
 # Convert rating to float, coerce errors to NaN
 df['imdbRating'] = pd.to_numeric(df['imdbRating'], errors='coerce')
 
+# Convert runtime to float, coerce errors to NaN
+# remove ' min' if it exists, then convert
+df['Runtime'] = df['Runtime'].astype(str).str.replace(' min', '', regex=False)
+df['Runtime'] = pd.to_numeric(df['Runtime'], errors='coerce')
+
 if actor_cols:
     df["AllActors"] = df[actor_cols].fillna("").agg(", ".join, axis=1)
 else:
     df["AllActors"] = df.get("Actors", "")
+
+# refine titles for sorting
+def normalize_title(title):
+    if not isinstance(title, str):
+        return ""
+    title = title.strip()
+    if title.lower().startswith("the "):
+        return title[4:]
+    return title
+
+# Franchise detection keywords
+def detect_franchise(plot, keywords):
+    if not isinstance(plot, str):
+        return False
+    plot = plot.lower()
+    return any(keyword in plot for keyword in keywords)
+
+franchises = {
+    "Harry Potter": ["harry potter", "hogwarts", "voldemort"],
+    "Star Wars": ["star wars", "jedi", "sith", "skywalker", "death star"],
+    "James Bond": ["james bond", "007", "mi6"]
+}
+
+for name, keywords in franchises.items():
+    df[name] = df["Plot"].apply(lambda x: detect_franchise(x, keywords))
 
 # -----------------------------
 # Set up Session State
@@ -141,21 +183,27 @@ all_actors = sorted(
 )
 selected_actors = st.sidebar.multiselect("Actor", all_actors)
 
-# Year filter
-min_year = int(df["Year"].min())
-max_year = int(df["Year"].max())
-year_range = st.sidebar.slider("Year Range", min_year, max_year, (min_year, max_year))
-
 # Sort option
 sort_option = st.sidebar.selectbox(
     "Sort by:",
     options=[
         "Title", 
         "Year", 
-        "IMDB Rating"
+        "IMDB Rating",
+        "Runtime"
     ],
     index=0
 )
+
+# Year filter
+min_year = int(df["Year"].min())
+max_year = int(df["Year"].max())
+year_range = st.sidebar.slider("Year Range", min_year, max_year, (min_year, max_year))
+
+# Runtime filter
+min_runtime = int(df["Runtime"].min())
+max_runtime = int(df["Runtime"].max())
+runtime_range = st.sidebar.slider("Runtime Range (minutes)", min_runtime, max_runtime, (min_runtime, max_runtime))
 
 # Random button
 st.sidebar.markdown("---")
@@ -170,6 +218,13 @@ num_random = st.sidebar.number_input(
 
 pick_random = st.sidebar.button("Pick Random Movies")
 clear_random = st.sidebar.button("Clear Random Mode")
+
+# Series filter
+st.sidebar.header("Franchise Filters, Include:")
+
+include_hp = st.sidebar.checkbox("Harry Potter", value=True)
+include_sw = st.sidebar.checkbox("Star Wars", value=True)
+include_bond = st.sidebar.checkbox("James Bond", value=True)
 
 # -----------------------------
 # APPLY FILTERS
@@ -204,13 +259,21 @@ filtered_df = filtered_df[
     (filtered_df["Year"] <= year_range[1])
 ]
 
-# Sort
-if sort_option == "Title":
-    filtered_df = filtered_df.sort_values("Title")
-elif sort_option == "Year":
-    filtered_df = filtered_df.sort_values("Year")
-elif sort_option == "IMDB Rating":
-    filtered_df = filtered_df.sort_values("imdbRating", ascending=False)
+# Runtime filter
+filtered_df = filtered_df[
+    (filtered_df["Runtime"] >= runtime_range[0]) &
+    (filtered_df["Runtime"] <= runtime_range[1])
+]
+
+# for franchise in selected_franchise:
+#     filtered_df = filtered_df[~filtered_df[franchise]]
+# Franchise filters
+if not include_hp:
+    filtered_df = filtered_df[~filtered_df["Harry Potter"]]
+if not include_sw:
+    filtered_df = filtered_df[~filtered_df["Star Wars"]]
+if not include_bond:
+    filtered_df = filtered_df[~filtered_df["James Bond"]]
 
 # ----------------------------
 # Filter check
@@ -240,14 +303,6 @@ if clear_random:
     st.session_state.random_mode = False
     st.session_state.random_selection = None
 
-
-# -----------------------------
-# DISPLAY POSTER GRID
-# -----------------------------
-st.write(f"### Showing {len(filtered_df)} movies")
-
-cols = st.columns(5)
-
 # If random button clicked, sample from filtered set
 if st.session_state.random_mode and st.session_state.random_selection is not None:
     display_df = st.session_state.random_selection
@@ -255,32 +310,65 @@ if st.session_state.random_mode and st.session_state.random_selection is not Non
 else:
     display_df = filtered_df
 
-for i, (_, row) in enumerate(display_df.iterrows()):
-    with cols[i % 5]:
+# -----------------------------
+# SORTING
+# -----------------------------
+# Sort
+if sort_option == "Title":
+    display_df["sort_title"] = display_df["Title"].apply(normalize_title)
+    display_df = display_df.sort_values("sort_title")
+    display_df = display_df.drop(columns=["sort_title"])
+elif sort_option == "Year":
+    display_df = display_df.sort_values("Year")
+elif sort_option == "IMDB Rating":
+    display_df = display_df.sort_values("imdbRating", ascending=False)
+elif sort_option == "Runtime":
+    display_df = display_df.sort_values("Runtime")
 
-        imdb_id = row.get("imdbID", "")
-        imdb_url = f"https://www.imdb.com/title/{imdb_id}/"
 
-        # Shorten title if too long
-        if len(row['Title']) > 25:
-            title = f"{row['Title'][:16]}...{row['Title'][-4:]}"
-        else:
-            title = row['Title']
+# -----------------------------
+# DISPLAY POSTER GRID
+# -----------------------------
+st.write(f"### Choosing from {len(filtered_df)} movies")
 
-        # Poster HTML
-        poster_html = ""
-        if pd.notna(row["Poster"]) and row["Poster"] != "N/A":
-            poster_html = f'<img src="{row["Poster"]}">'
+# if st.query_params.get("mobile") == "1":
+#     num_cols = 1
+# else:
+num_cols = 5
+cols = st.columns(num_cols)
 
-        # Full card HTML in ONE markdown block
-        card_html = f"""
-        <a href="{imdb_url}" target="_blank" class="movie-link">
-            <div class="movie-card">
-                {poster_html}
-                <div class="movie-title">{title}</div>
-                <div class="movie-year">{int(row['Year']) if pd.notna(row['Year']) else ''}</div>
-            </div>
-        </a>
-        """
+num_cols = 5
 
-        st.markdown(card_html, unsafe_allow_html=True)
+# Display in grid by rows (scales if unable to get up to num_cols)
+for i in range(0, len(display_df), num_cols):
+    row_slice = display_df.iloc[i:i+num_cols]
+    cols = st.columns(num_cols)
+
+    for col, (_, row) in zip(cols, row_slice.iterrows()):
+        with col:
+            imdb_id = row.get("imdbID", "")
+            imdb_url = f"https://www.imdb.com/title/{imdb_id}/"
+
+            # Shorten title if too long
+            if len(row['Title']) > 25:
+                title = f"{row['Title'][:18]}...{row['Title'][-6:]}"
+            else:
+                title = row['Title']
+
+            # Poster HTML
+            poster_html = ""
+            if pd.notna(row["Poster"]) and row["Poster"] != "N/A":
+                poster_html = f'<img src="{row["Poster"]}">'
+
+            # Full card HTML in ONE markdown block
+            card_html = f"""
+            <a href="{imdb_url}" target="_blank" class="movie-link">
+                <div class="movie-card">
+                    {poster_html}
+                    <div class="movie-title">{title}</div>
+                    <div class="movie-year">{int(row['Year']) if pd.notna(row['Year']) else ''}</div>
+                </div>
+            </a>
+            """
+
+            st.markdown(card_html, unsafe_allow_html=True)
