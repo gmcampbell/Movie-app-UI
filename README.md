@@ -37,15 +37,22 @@ Your TODO:
 - Install dependencies:
     pip install -r requirements.txt
 - Make your database
+
     create your own .txt with titles/IMDB ID's
+  
     make an OMDB API - https://www.omdbapi.com/apikey.aspx
+  
     update API variable and 'run all' through database_setup.ipynb
+  
     correct titles in .txt that raise errors
 - Run your UI locally
+  
     in terminal:
+  
       streamlit run app.py
 
 - Open in your browser:
+  
     http://localhost:8501
 
 🌎 Accessing remotely (or on mobile):
@@ -53,12 +60,10 @@ Your TODO:
 I host a local 'zrok' to provide online access (I'm using 1.0, feel free to try 2.0):
 
   Download/Install Zrok:
-  
-    https://www.youtube.com/watch?v=Je5j4ThouCo
+  - https://www.youtube.com/watch?v=Je5j4ThouCo
 
   Make an account:
-  
-    https://netfoundry.io/docs/zrok/1.0/getting-started 
+  - https://netfoundry.io/docs/zrok/1.0/getting-started 
     
   Run in terminal (command prompt):
   
